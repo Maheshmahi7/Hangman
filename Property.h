@@ -10,7 +10,7 @@
 
 #define WORDS "Words"
 
-#define WORD "Word"
+#define WORDNAME "Word"
 
 #define NAME "Name"
 
@@ -49,6 +49,8 @@
 #define GET_MAXIMUM_GAME_ID L"select max(gameid) from gamedetails"
 
 #define GET_PLAYING_GAME_DETAILS_BY_ID L"select gameid, username, socketaddress, words.word from gamedetails join words on gamedetails.wordid = words.id where Result = 'playing' and gameid= ?"
+
+#define GET_SOCKET_ADDRESS_BY_GAME_ID L"select socketaddress from gamedetails where gameid= ?"
 
 #define GET_PLAYING_GAME_DETAILS L"select gameid, username, socketaddress, words.word from gamedetails join words on gamedetails.wordid = words.id where Result = 'playing' order by gameid asc"
 
