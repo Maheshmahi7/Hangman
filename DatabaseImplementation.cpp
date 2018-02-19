@@ -14,7 +14,7 @@ DatabaseImplementation::~DatabaseImplementation()
 	SQLFreeHandle(SQL_HANDLE_DBC, SqlConnHandle);
 }
 
-SQLHANDLE DatabaseImplementation::select(SQLHANDLE SqlHandle,SQLWCHAR* Query)
+SQLHANDLE DatabaseImplementation::select(SQLHANDLE SqlHandle, SQLWCHAR* Query)
 {
 	return (SQL_SUCCESS != SQLExecDirect(SqlHandle, Query, SQL_NTS)) ? SqlHandle : SqlHandle;
 }
@@ -24,7 +24,7 @@ vector<Category> DatabaseImplementation::get_category()
 {
 	vector<Category> CategoryVector;
 	Category CategoryObject;
-	SQLHANDLE SqlHandle = NULL; 
+	SQLHANDLE SqlHandle = NULL;
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
 	/*check whether the query is executed successfully if not then it will return empty vector*/
 	if (SqlHandle = (select(SqlHandle, GET_CATEGORY)))
@@ -205,8 +205,8 @@ string DatabaseImplementation::update_game_result(int GameId, char* Result)
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
 	SQLRETURN ReturnCode;
 	char SqlResult[50];
-	SQLINTEGER SqlGameId, PtrValue=SQL_NTS;
-	ReturnCode = SQLPrepare(SqlHandle,UPDATE_GAME_RESULT, SQL_NTS);
+	SQLINTEGER SqlGameId, PtrValue = SQL_NTS;
+	ReturnCode = SQLPrepare(SqlHandle, UPDATE_GAME_RESULT, SQL_NTS);
 	ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, strlen(Result), 0, &SqlResult, 0, &PtrValue);
 	ReturnCode = SQLBindParameter(SqlHandle, 2, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlGameId, 0, &PtrValue);
 	strcpy_s((char*)SqlResult, _countof(SqlResult), Result);
@@ -217,13 +217,13 @@ string DatabaseImplementation::update_game_result(int GameId, char* Result)
 	return (SQL_SUCCESS != ReturnCode) ? "Error Quering SQL Server" : "Updated Successfully";
 }
 
-string DatabaseImplementation::update_game_result(int GameId, int SocketAddress,char* Result)
+string DatabaseImplementation::update_game_result(int GameId, int SocketAddress, char* Result)
 {
 	SQLHANDLE SqlHandle = NULL;
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
 	SQLRETURN ReturnCode;
 	char SqlResult[50];
-	SQLINTEGER SqlGameId, SqlSocketAddress,PtrValue = SQL_NTS;
+	SQLINTEGER SqlGameId, SqlSocketAddress, PtrValue = SQL_NTS;
 	ReturnCode = SQLPrepare(SqlHandle, UPDATE_GAME_RESULT_EXIT, SQL_NTS);
 	ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, strlen(Result), 0, &SqlResult, 0, &PtrValue);
 	ReturnCode = SQLBindParameter(SqlHandle, 2, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlGameId, 0, &PtrValue);
@@ -235,6 +235,64 @@ string DatabaseImplementation::update_game_result(int GameId, int SocketAddress,
 	/*check whether the query is executed successfully if not then it will return a string*/
 	SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
 	return (SQL_SUCCESS != ReturnCode) ? "Error Quering SQL Server" : "Updated Successfully";
+}
+
+/*This method is used to get the Updated result from gamedetails with the game id*/
+/*This method is for testing purpose only*/
+vector<GameDetails> DatabaseImplementation::get_updated_result(int GameId)
+{
+	SQLHANDLE SqlHandle = NULL;
+	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
+	SQLRETURN ReturnCode;
+	SQLINTEGER SqlGameId, PtrValue = SQL_NTS;
+	ReturnCode = SQLPrepare(SqlHandle, GET_UPDATED_RESULT_BY_GAME_ID, SQL_NTS);
+	ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlGameId, 0, &PtrValue);
+	SqlGameId = GameId;
+	ReturnCode = SQLExecute(SqlHandle);
+	vector<GameDetails> GameDetailsVector;
+	GameDetails GameDetailsObject;
+	SQLINTEGER Id, PtrSqlVersion;
+	SQLCHAR Result[50];
+	/*while loop to fetch the data from the handler and store it into vector*/
+	while (SQLFetch(SqlHandle) == SQL_SUCCESS)
+	{
+		SQLGetData(SqlHandle, 1, SQL_INTEGER, &Id, 0, &PtrSqlVersion);
+		SQLGetData(SqlHandle, 2, SQL_CHAR, Result, 50, &PtrSqlVersion);
+		GameDetailsObject.set_game_id(Id);
+		GameDetailsObject.set_result((char*)Result);
+		GameDetailsVector.push_back(GameDetailsObject);
+	}
+	return GameDetailsVector;
+}
+
+/*This method is used to get the Updated result from gamedetails with the game id*/
+/*This method is for testing purpose only*/
+vector<GameDetails> DatabaseImplementation::get_updated_result(int GameId, int SocketAddress)
+{
+	SQLHANDLE SqlHandle = NULL;
+	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
+	SQLRETURN ReturnCode;
+	SQLINTEGER SqlGameId, SqlSocketAddress, PtrValue = SQL_NTS;
+	ReturnCode = SQLPrepare(SqlHandle, GET_UPDATED_RESULT_BY_SOCKET_ADDRESS, SQL_NTS);
+	ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlGameId, 0, &PtrValue);
+	ReturnCode = SQLBindParameter(SqlHandle, 2, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlSocketAddress, 0, &PtrValue);
+	SqlGameId = GameId;
+	SqlSocketAddress = SocketAddress;
+	ReturnCode = SQLExecute(SqlHandle);
+	vector<GameDetails> GameDetailsVector;
+	GameDetails GameDetailsObject;
+	SQLINTEGER Id, PtrSqlVersion;
+	SQLCHAR Result[50];
+	/*while loop to fetch the data from the handler and store it into vector*/
+	while (SQLFetch(SqlHandle) == SQL_SUCCESS)
+	{
+		SQLGetData(SqlHandle, 1, SQL_INTEGER, &Id, 0, &PtrSqlVersion);
+		SQLGetData(SqlHandle, 2, SQL_CHAR, Result, 50, &PtrSqlVersion);
+		GameDetailsObject.set_game_id(Id);
+		GameDetailsObject.set_result((char*)Result);
+		GameDetailsVector.push_back(GameDetailsObject);
+	}
+	return GameDetailsVector;
 }
 
 /*This method will give a random word from database for a new game based on category name and difficulty name choosen by the user*/
@@ -251,12 +309,12 @@ string DatabaseImplementation::get_word(char* CategoryName, char* DifficultyName
 	ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, strlen(CategoryName), 0, &SqlCategory, 0, &PtrValue);
 	ReturnCode = SQLBindParameter(SqlHandle, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, strlen(DifficultyName), 0, &SqlDifficulty, 0, &PtrValue);
 	/*check whether the query is executed successfully if not then it will return string*/
-	if (SQL_SUCCESS != SQLExecute(SqlHandle)) 
+	if (SQL_SUCCESS != SQLExecute(SqlHandle))
 	{
 		SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
 		return "Error querying SQL Server";
 	}
-	else 
+	else
 	{
 		char Word[50];
 		/*while loop to fetch the data from the handler*/
@@ -283,7 +341,7 @@ string DatabaseImplementation::insert_into_game_details(int GameId, char* UserNa
 	ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, strlen(Word), 0, &SqlWord, 0, &PtrValue);
 	strcpy_s((char*)SqlWord, _countof(SqlWord), Cryption.encoder(Word).c_str());//method to encrypt the string to human non-understandable form
 	/*check whether the query is executed successfully if not then it will return string*/
-	if (SQL_SUCCESS != SQLExecute(SqlHandle)) 
+	if (SQL_SUCCESS != SQLExecute(SqlHandle))
 	{
 		SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
 		return "Error querying SQL Server";
@@ -298,7 +356,7 @@ string DatabaseImplementation::insert_into_game_details(int GameId, char* UserNa
 	}
 	SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
-	ReturnCode = SQLPrepare(SqlHandle,INSERT_INTO_GAME_DETAILS, SQL_NTS);
+	ReturnCode = SQLPrepare(SqlHandle, INSERT_INTO_GAME_DETAILS, SQL_NTS);
 	ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlGameId, 0, &PtrValue);
 	SqlGameId = GameId;
 	ReturnCode = SQLBindParameter(SqlHandle, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, strlen(UserName), 0, &SqlUserName, 0, &PtrValue);
@@ -361,7 +419,7 @@ string DatabaseImplementation::insert_into_words(int CategoryId, int DifficultyI
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
 	SQLRETURN ReturnCode;
 	char SqlWord[50];
-	SQLINTEGER SqlIsActive,SqlCategoryId,SqlDifficultyId, PtrValue = SQL_NTS;
+	SQLINTEGER SqlIsActive, SqlCategoryId, SqlDifficultyId, PtrValue = SQL_NTS;
 	ReturnCode = SQLPrepare(SqlHandle, (SQLWCHAR*)INSERT_INTO_WORDS, SQL_NTS);
 	ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlCategoryId, 0, &PtrValue);
 	SqlCategoryId = CategoryId;

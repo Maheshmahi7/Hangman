@@ -58,9 +58,9 @@
 
 #define DIFFICULTY_ID "DifficultyId"
 
-#define XML_FILE "./Data.xml"
+#define XML_FILE "Data.xml"
 
-#define CONNECTION_DRIVER L"DRIVER={SQL Server};SERVER=IN11W-TRAINEE5\\SQLEXPRESS,49400;DATABASE=Hangman;Trusted=true;"
+#define CONNECTION_DRIVER L"DRIVER={SQL Server};SERVER=IN11W-TRAINEE6\\SQLEXPRESS,49342;DATABASE=Hangman;Trusted=true;"
 
 #define CHECK_TABLE_PROCEDURE L"{ CALL CheckTable}"
 
@@ -97,3 +97,7 @@
 #define GET_DIFFICULTY L"select * from difficulty where isactive = 1"
 
 #define GET_CATEGORY L"select * from category where isactive = 1"
+
+#define GET_UPDATED_RESULT_BY_GAME_ID L"select gameid, result from gamedetails where gameid = ?"
+
+#define GET_UPDATED_RESULT_BY_SOCKET_ADDRESS L"select gameid, result from gamedetails where gameid = ? and socketaddress = ?"
