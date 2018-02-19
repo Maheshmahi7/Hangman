@@ -19,6 +19,7 @@ void test_xml_parser_get_diffiulty_from_xml();
 void test_xml_parser_get_word_from_xml();
 void test_get_category();
 void test_get_difficulty();
+void test_get_word();
 void test_update_game_details();
 void test_get_maximum_game_id();
 void test_insert_into_game_details();
@@ -34,6 +35,7 @@ void main()
 	test_xml_parser_get_category_from_xml();
 	test_xml_parser_get_diffiulty_from_xml();
 	test_xml_parser_get_word_from_xml();
+	test_get_word();
 	test_insert_into_game_details();
 	test_update_game_details();
 	test_get_maximum_game_id();
@@ -418,7 +420,6 @@ void test_get_maximum_game_id()
 	}
 }
 
-
 void test_insert_into_game_details()
 {
 	int GameId = 6, SocketAddress = 4125, count = 0;
@@ -447,6 +448,39 @@ void test_insert_into_game_details()
 	else
 	{
 		cout << "Test Insert Game Details Failed" << endl;
+	}
+}
+
+void test_get_word()
+{
+	DatabaseInterface* DBInterface = new DatabaseImplementation();
+	int count = 0;
+	char* CategoryName = "Animals";
+	char* DifficultyName = "Easy";
+	string words[10] = { "Lion", "Tiger", "Snake", "Zebra", "Yak", "Wolf", "Cat", "Bear", "Owl", "monkey" };
+	string Word;
+	Word = DBInterface->get_word(CategoryName,DifficultyName);
+	if (!Word.empty())
+	{
+		for (unsigned int i = 0; i < 10 ; i++)
+		{
+			if (Word.compare(words[i]) == 0)
+			{
+				count++;
+			}
+		}
+		if (count == 1)
+		{
+			cout << "Word from DB Test Passed" << endl;
+		}
+		else
+		{
+			cout << "Word from DB Test Failed" << endl;
+		}
+	}
+	else
+	{
+		cout << "Word from DB Test Failed" << endl;
 	}
 }
 
