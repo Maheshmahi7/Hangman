@@ -21,11 +21,12 @@ void test_get_category();
 void test_get_difficulty();
 void test_update_game_details();
 void test_get_maximum_game_id();
-void test_get_playing_game_details();
 void test_insert_into_game_details();
+void test_load_data();
 
 void main()
 {
+	test_load_data();
 	test_coder();
 	test_category();
 	test_difficulty();
@@ -33,12 +34,9 @@ void main()
 	test_xml_parser_get_category_from_xml();
 	test_xml_parser_get_diffiulty_from_xml();
 	test_xml_parser_get_word_from_xml();
-	test_get_category();
-	test_get_difficulty();
-	//test_insert_into_game_details();
+	test_insert_into_game_details();
 	test_update_game_details();
 	test_get_maximum_game_id();
-	test_get_playing_game_details();
 
 	cin.get();
 	cin.ignore(1000, '\n');
@@ -290,6 +288,14 @@ void test_xml_parser_get_word_from_xml()
 	}
 }
 
+void test_load_data()
+{
+	DatabaseInterface* DBInterface = new DatabaseImplementation();
+	DBInterface->load_data();
+	test_get_category();
+	test_get_difficulty();
+}
+
 void test_get_category()
 {
 	DatabaseInterface* DBInterface = new DatabaseImplementation();
@@ -354,17 +360,46 @@ void test_get_difficulty()
 
 void test_update_game_details()
 {
-	int GameId = 2;
+	int GameId = 6;
 	string Result = "WIN";
+	vector<GameDetails> GameDetailsVector;
 	DatabaseInterface* DBInterface = new DatabaseImplementation();
 	string Status = DBInterface->update_game_result(GameId, (char*)Result.c_str());
-	if (Status.compare("Updated Successfully"))
+	GameDetailsVector = DBInterface->get_updated_result(GameId);
+	if (GameDetailsVector.size() > 0)
 	{
-			cout << "Test Update Game Details Passed" << endl;
+		if (GameDetailsVector[0].get_result().compare(Result) == 0)
+		{
+			cout << "Test Update Game Details By GameId Passed" << endl;
+		}
+		else
+		{
+			cout << "Test Update Game Details By GameId Failed" << endl;
+		}
 	}
 	else
 	{
-		cout << "Test Update Game Details Failed" << endl;
+		cout << "Test Update Game Details By GameId Failed" << endl;
+	}
+	GameId = 6;
+	Result = "WIN";
+	int SocketAddress = 4125;
+	Status = DBInterface->update_game_result(GameId, SocketAddress,(char*)Result.c_str());
+	GameDetailsVector = DBInterface->get_updated_result(GameId,SocketAddress);
+	if (GameDetailsVector.size() > 0)
+	{
+		if (GameDetailsVector[0].get_result().compare(Result) == 0)
+		{
+			cout << "Test Update Game Details By Socket Address Passed" << endl;
+		}
+		else
+		{
+			cout << "Test Update Game Details By Socket Address Failed" << endl;
+		}
+	}
+	else
+	{
+		cout << "Test Update Game Details By Socket Address Failed" << endl;
 	}
 }
 
@@ -373,7 +408,7 @@ void test_get_maximum_game_id()
 	int GameId;
 	DatabaseInterface* DBInterface = new DatabaseImplementation();
 	GameId = DBInterface->get_maximum_game_id();
-	if (GameId >= 0)
+	if (GameId >= 5)
 	{
 		cout << "Test Get Maximum Game Id Passed" << endl;
 	}
@@ -383,34 +418,10 @@ void test_get_maximum_game_id()
 	}
 }
 
-void test_get_playing_game_details()
-{
-	int GameId = 3;
-	vector<GameDetails> GameDetailsVector;
-	DatabaseInterface* DBInterface = new DatabaseImplementation();
-	GameDetailsVector = DBInterface->get_playing_game_detail();
-	if (GameDetailsVector.size() >= 0)
-	{
-		cout << "Test Get Game Details Passed" << endl;
-	}
-	else
-	{
-		cout << "Test Get Game Details Failed" << endl;
-	}
-	GameDetailsVector = DBInterface->get_playing_game_detail(GameId);
-	if (GameDetailsVector.size() >= 0)
-	{
-		cout << "Test Get Game Details By Id Passed" << endl;
-	}
-	else
-	{
-		cout << "Test Get Game Details By Id Failed" << endl;
-	}
-}
 
 void test_insert_into_game_details()
 {
-	int GameId = 3, SocketAddress = 4125, count = 0;
+	int GameId = 6, SocketAddress = 4125, count = 0;
 	string UserName = "mani",Word="Elephant";
 	DatabaseInterface* DBInterface = new DatabaseImplementation();
 	string Status = DBInterface->insert_into_game_details(GameId, (char*)UserName.c_str(), SocketAddress, (char*)Word.c_str());
