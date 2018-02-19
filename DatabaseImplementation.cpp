@@ -5,7 +5,6 @@ then the encryption key value is set here*/
 DatabaseImplementation::DatabaseImplementation()
 {
 	SqlConnHandle = Connection.get_connection_handler();
-	Cryption.set_key(KEY);
 }
 
 /*In destructor the connection handler is delete to free memory*/
@@ -188,7 +187,6 @@ int DatabaseImplementation::get_maximum_game_id()
 	/*check whether the query is executed successfully if not then it will return -1 to indicate no execution failed*/
 	if (SqlHandle = (select(SqlHandle, GET_MAXIMUM_GAME_ID)))
 	{
-
 		/*while loop to fetch the data from the handler*/
 		while (SQLFetch(SqlHandle) == SQL_SUCCESS)
 		{
@@ -213,6 +211,26 @@ string DatabaseImplementation::update_game_result(int GameId, char* Result)
 	ReturnCode = SQLBindParameter(SqlHandle, 2, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlGameId, 0, &PtrValue);
 	strcpy_s((char*)SqlResult, _countof(SqlResult), Result);
 	SqlGameId = GameId;
+	ReturnCode = SQLExecute(SqlHandle);
+	/*check whether the query is executed successfully if not then it will return a string*/
+	SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
+	return (SQL_SUCCESS != ReturnCode) ? "Error Quering SQL Server" : "Updated Successfully";
+}
+
+string DatabaseImplementation::update_game_result(int GameId, int SocketAddress,char* Result)
+{
+	SQLHANDLE SqlHandle = NULL;
+	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
+	SQLRETURN ReturnCode;
+	char SqlResult[50];
+	SQLINTEGER SqlGameId, SqlSocketAddress,PtrValue = SQL_NTS;
+	ReturnCode = SQLPrepare(SqlHandle, UPDATE_GAME_RESULT_EXIT, SQL_NTS);
+	ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, strlen(Result), 0, &SqlResult, 0, &PtrValue);
+	ReturnCode = SQLBindParameter(SqlHandle, 2, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlGameId, 0, &PtrValue);
+	ReturnCode = SQLBindParameter(SqlHandle, 3, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlSocketAddress, 0, &PtrValue);
+	strcpy_s((char*)SqlResult, _countof(SqlResult), Result);
+	SqlGameId = GameId;
+	SqlSocketAddress = SocketAddress;
 	ReturnCode = SQLExecute(SqlHandle);
 	/*check whether the query is executed successfully if not then it will return a string*/
 	SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
@@ -289,6 +307,7 @@ string DatabaseImplementation::insert_into_game_details(int GameId, char* UserNa
 	SqlWordId = WordId;
 	ReturnCode = SQLBindParameter(SqlHandle, 4, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlSocketAddress, 0, &PtrValue);
 	SqlSocketAddress = SocketAddress;
+	ReturnCode = SQLExecute(SqlHandle);
 	/*check whether the query is executed successfully if not then it will return string*/
 	SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
 	return (SQL_SUCCESS != ReturnCode) ? "Error Quering SQL Server" : "Inserted Successfully";
@@ -374,68 +393,75 @@ Before loading the data it will delete the already available data along with the
 and create a new table and insert the new data*/
 void DatabaseImplementation::load_data()
 {
-	DatabaseXmlParser XmlParser;
+	DatabaseXmlParser Xml;
 	xml_document<> Document;
 	xml_node<> *Node;
 	ifstream File(XML_FILE);
-	stringstream Buffer;
-	Buffer << File.rdbuf();
-	File.close();
-	string Content(Buffer.str());
-	Document.parse<0>(&Content[0]);
-	Node = Document.first_node();
-	XmlParser.set_node(Node);
-	vector<Category> CatergoryVector;
-	vector<Difficulty> DifficultyVector;
-	vector<Words> WordVector;
-	SQLRETURN ReturnCode;
-	string Status;
-	
-	ReturnCode = procedure_call(CHECK_TABLE_PROCEDURE);
-	if ((SQL_SUCCESS != ReturnCode) && (ReturnCode != SQL_SUCCESS_WITH_INFO))
+	if (File)
 	{
-		return;
-	}
-	else
-	{
-		ReturnCode = procedure_call(CREATE_CATEGORY_PROCEDURE);
+		stringstream Buffer;
+		Buffer << File.rdbuf();
+		File.close();
+		string Content(Buffer.str());
+		Document.parse<0>(&Content[0]);
+		Node = Document.first_node();
+		Xml.set_node(Node);
+		vector<Category> CatergoryVector;
+		vector<Difficulty> DifficultyVector;
+		vector<Words> WordVector;
+		SQLRETURN ReturnCode;
+		string Status;
+
+		ReturnCode = procedure_call(CHECK_TABLE_PROCEDURE);
 		if ((SQL_SUCCESS != ReturnCode) && (ReturnCode != SQL_SUCCESS_WITH_INFO))
 		{
 			return;
 		}
 		else
 		{
-			CatergoryVector = XmlParser.get_category_from_xml(XmlParser.get_node());
-			for (size_t i = 0; i < CatergoryVector.size(); i++)
-			{
-				Status = insert_into_category((char*)CatergoryVector[i].get_name().c_str(),CatergoryVector[i].get_is_active());
-			}
-			ReturnCode = procedure_call(CREATE_DIFFICULTY_PROCEDURE);
+			ReturnCode = procedure_call(CREATE_CATEGORY_PROCEDURE);
 			if ((SQL_SUCCESS != ReturnCode) && (ReturnCode != SQL_SUCCESS_WITH_INFO))
 			{
 				return;
 			}
 			else
 			{
-				DifficultyVector = XmlParser.get_difficulty_from_xml(XmlParser.get_node());
-				for (size_t i = 0; i < DifficultyVector.size(); i++)
+				CatergoryVector = Xml.get_category_from_xml(Xml.get_node());
+				for (size_t i = 0; i < CatergoryVector.size(); i++)
 				{
-					Status = insert_into_difficulty((char*)DifficultyVector[i].get_name().c_str(), DifficultyVector[i].get_is_active());
+					Status = insert_into_category((char*)CatergoryVector[i].get_name().c_str(), CatergoryVector[i].get_is_active());
 				}
-				ReturnCode = procedure_call(CREATE_WORDS_PROCEDURE);
+				ReturnCode = procedure_call(CREATE_DIFFICULTY_PROCEDURE);
 				if ((SQL_SUCCESS != ReturnCode) && (ReturnCode != SQL_SUCCESS_WITH_INFO))
 				{
 					return;
 				}
 				else
 				{
-					WordVector = XmlParser.get_words_from_xml(XmlParser.get_node());
-					for (size_t i = 0; i < WordVector.size(); i++)
+					DifficultyVector = Xml.get_difficulty_from_xml(Xml.get_node());
+					for (size_t i = 0; i < DifficultyVector.size(); i++)
 					{
-						Status = insert_into_words(WordVector[i].get_category_id().get_id(), WordVector[i].get_difficulty_id().get_id(), (char*)WordVector[i].get_word().c_str(), WordVector[i].get_is_active());
+						Status = insert_into_difficulty((char*)DifficultyVector[i].get_name().c_str(), DifficultyVector[i].get_is_active());
+					}
+					ReturnCode = procedure_call(CREATE_WORDS_PROCEDURE);
+					if ((SQL_SUCCESS != ReturnCode) && (ReturnCode != SQL_SUCCESS_WITH_INFO))
+					{
+						return;
+					}
+					else
+					{
+						WordVector = Xml.get_words_from_xml(Xml.get_node());
+						for (size_t i = 0; i < WordVector.size(); i++)
+						{
+							Status = insert_into_words(WordVector[i].get_category_id().get_id(), WordVector[i].get_difficulty_id().get_id(), (char*)WordVector[i].get_word().c_str(), WordVector[i].get_is_active());
+						}
 					}
 				}
 			}
 		}
+	}
+	else
+	{
+		cout << "Data.Xml file is missing so the program starts with old data" << endl;
 	}
 }

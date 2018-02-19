@@ -1,3 +1,41 @@
+#define HANGMAN "Hangman"
+
+#define CREATE "Create"
+
+#define JOIN "Join"
+
+#define MAXIMUMGUESS 7
+
+#define CATEGORYLIST "CategoryList"
+
+#define DIFFICULTYLEVEL "DifficultyLevel"
+
+#define LEVEL "Level"
+
+#define GAMEID "GameId"
+
+#define CREATEGAME "CreateGame"
+
+#define USERNAME "UserName"
+
+#define JOINGAME "JoinGame"
+
+#define REQUEST "Request"
+
+#define RESPONSE "Response"
+
+#define GAMEINFO "GameInfo"
+
+#define REMAININGGUESS "RemainingGuess"
+
+#define WRONGGUESS "WrongGuess"
+
+#define RESULT "Result"
+
+#define LETTER "Letter"
+
+#define CHANCE "Chance"
+
 #define KEY 2
 
 #define CATEGORY "Category"
@@ -20,9 +58,9 @@
 
 #define DIFFICULTY_ID "DifficultyId"
 
-#define XML_FILE "Data.xml"
+#define XML_FILE "./Data.xml"
 
-#define CONNECTION_DRIVER L"DRIVER={SQL Server};SERVER=IN11W-TRAINEE6\\SQLEXPRESS,49342;DATABASE=Hangman;Trusted=true;"
+#define CONNECTION_DRIVER L"DRIVER={SQL Server};SERVER=IN11W-TRAINEE5\\SQLEXPRESS,49400;DATABASE=Hangman;Trusted=true;"
 
 #define CHECK_TABLE_PROCEDURE L"{ CALL CheckTable}"
 
@@ -44,7 +82,9 @@
 
 #define GET_WORD L"select top 1 word from words join category on category.id = words.categoryid join difficulty on difficulty.id = words.difficultyid where category.name = ? and difficulty.name = ? order by newid()"
 
-#define UPDATE_GAME_RESULT L"update gamedetails set result = ? where GameId = ?"
+#define UPDATE_GAME_RESULT L"update gamedetails set result = ? where GameId = ? and Result = 'playing'"
+
+#define UPDATE_GAME_RESULT_EXIT L"update gamedetails set result = ? where GameId = ? and Result = 'playing' and socketaddress = ?"
 
 #define GET_MAXIMUM_GAME_ID L"select max(gameid) from gamedetails"
 

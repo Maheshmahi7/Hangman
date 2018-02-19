@@ -8,9 +8,8 @@
 #include "Property.h"
 #include <fstream>
 #include <iostream>
-#include <string>
-#include <vector>
 #include <sstream>
+
 
 using namespace std;
 using namespace rapidxml;
@@ -20,7 +19,7 @@ class DatabaseXmlParser
 private:
 	xml_document<> Document;
 	xml_node<> *Node;
-
+	
 public:
 	DatabaseXmlParser();
 	~DatabaseXmlParser();

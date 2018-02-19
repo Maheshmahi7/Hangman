@@ -71,7 +71,7 @@ vector<Words> XmlParser::get_words_from_xml(xml_node<>* Node)
 	vector<Words> WordVector;
 	size_t SizeElement;
 	xml_node<> *Child = Node->first_node(WORDS);
-	xml_node<> *Child1 = Child->first_node(WORD);
+	xml_node<> *Child1 = Child->first_node(WORDNAME);
 	while (Child1 != NULL)
 	{
 		xml_node<> *Element = Child1->first_node(CATEGORY_ID);
