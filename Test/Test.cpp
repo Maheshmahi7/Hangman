@@ -429,19 +429,39 @@ void test_insert_into_game_details()
 	vector<GameDetails> gamedetails = DBInterface->get_playing_game_detail(GameId);
 	for (unsigned int i = 0; i < gamedetails.size(); i++)
 	{
-		if (gamedetails[i].get_username().compare(UserName)==0)
+		if (gamedetails[i].get_game_id() == GameId)
 		{
-			if (gamedetails[i].get_socket_address() == SocketAddress)
+			if (gamedetails[i].get_username().compare(UserName) == 0)
 			{
-				if (gamedetails[i].get_word_id().get_word().compare(Word)==0)
+				if (gamedetails[i].get_socket_address() == SocketAddress)
 				{
-					count++;
+					if (gamedetails[i].get_word_id().get_word().compare(Word) == 0)
+					{
+						count++;
+					}
+				}
+			}
+		}
+	}
+	gamedetails = DBInterface->get_playing_game_detail();
+	for (unsigned int i = 0; i < gamedetails.size(); i++)
+	{
+		if (gamedetails[i].get_game_id() == GameId)
+		{
+			if (gamedetails[i].get_username().compare(UserName) == 0)
+			{
+				if (gamedetails[i].get_socket_address() == SocketAddress)
+				{
+					if (gamedetails[i].get_word_id().get_word().compare(Word) == 0)
+					{
+						count++;
+					}
 				}
 			}
 		}
 	}
 
-	if (count == 1)
+	if (count == 2)
 	{
 		cout << "Test Insert Game Details Passed" << endl;
 	}
