@@ -16,7 +16,7 @@ DatabaseImplementation::~DatabaseImplementation()
 
 SQLHANDLE DatabaseImplementation::select(SQLHANDLE SqlHandle, SQLWCHAR* Query)
 {
-	return (SQL_SUCCESS != SQLExecDirect(SqlHandle, Query, SQL_NTS)) ? SqlHandle : SqlHandle;
+	return (SQL_SUCCESS != SQLExecDirect(SqlHandle, Query, SQL_NTS)) ? 0 : SqlHandle;
 }
 
 /*This method is to get list of category from database and return it as vector of category object*/
@@ -83,7 +83,6 @@ vector<GameDetails> DatabaseImplementation::get_playing_game_detail()
 	vector<GameDetails> GameDetailsVector;
 	SQLHANDLE SqlHandle = NULL;
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
-	string Temp;
 	/*check whether the query is executed successfully if not then it will return empty vector*/
 	if (SqlHandle = (select(SqlHandle, GET_PLAYING_GAME_DETAILS)))
 	{
@@ -101,7 +100,6 @@ vector<GameDetails> DatabaseImplementation::get_playing_game_detail(int GameId)
 	SQLRETURN ReturnCode;
 	SQLINTEGER SqlGameId, PtrValue = SQL_NTS;
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
-	string Temp;
 	ReturnCode = SQLPrepare(SqlHandle, GET_PLAYING_GAME_DETAILS_BY_ID, SQL_NTS);
 	ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlGameId, 0, &PtrValue);
 	SqlGameId = GameId;
@@ -153,7 +151,6 @@ vector<int> DatabaseImplementation::get_socket_address_by_game_id(int GameId)
 	SQLRETURN ReturnCode;
 	SQLINTEGER SqlGameId, PtrValue = SQL_NTS;
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
-	string Temp;
 	ReturnCode = SQLPrepare(SqlHandle, GET_SOCKET_ADDRESS_BY_GAME_ID, SQL_NTS);
 	ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlGameId, 0, &PtrValue);
 	SqlGameId = GameId;
@@ -195,7 +192,7 @@ int DatabaseImplementation::get_maximum_game_id()
 
 		SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
 	}
-	return (GameId > 0) ? GameId : 0;
+	return (GameId > 0) ? (GameId == 1024) ? 0 : GameId : 0;
 }
 
 /*This method id to update the game result by using the game id*/
@@ -373,66 +370,83 @@ string DatabaseImplementation::insert_into_game_details(int GameId, char* UserNa
 
 /*This is private class method for inserting into category table while starting the server
 the input is read from the xml file*/
-string DatabaseImplementation::insert_into_category(char* Name, int IsActive)
+void DatabaseImplementation::insert_into_category(vector<Category> CategoryVector)
 {
 	SQLHANDLE SqlHandle = NULL;
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
 	SQLRETURN ReturnCode;
 	char SqlName[50];
 	SQLINTEGER SqlIsActive, PtrValue = SQL_NTS;
-	ReturnCode = SQLPrepare(SqlHandle, (SQLWCHAR*)INSERT_INTO_CATEGORY, SQL_NTS);
-	ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, strlen(Name), 0, &SqlName, 0, &PtrValue);
-	strcpy_s((char*)SqlName, _countof(SqlName), Cryption.encoder(Name).c_str());//method to encrypt the string to human non-understandable form
-	ReturnCode = SQLBindParameter(SqlHandle, 2, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlIsActive, 0, &PtrValue);
-	SqlIsActive = IsActive;
-	ReturnCode = SQLExecute(SqlHandle);
+	int Size = CategoryVector.size();
+	for (unsigned int i = 0; i < Size; i++)
+	{
+		char* Name = (char*)CategoryVector[i].get_name().c_str();
+		int IsActive = CategoryVector[i].get_is_active();
+		ReturnCode = SQLPrepare(SqlHandle, (SQLWCHAR*)INSERT_INTO_CATEGORY, SQL_NTS);
+		ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, strlen(Name), 0, &SqlName, 0, &PtrValue);
+		strcpy_s((char*)SqlName, _countof(SqlName), Cryption.encoder(Name).c_str());//method to encrypt the string to human non-understandable form
+		ReturnCode = SQLBindParameter(SqlHandle, 2, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlIsActive, 0, &PtrValue);
+		SqlIsActive = IsActive;
+		ReturnCode = SQLExecute(SqlHandle);
+	}
 	/*check whether the query is executed successfully if not then it will return string*/
 	SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
-	return (SQL_SUCCESS != ReturnCode) ? "Error Quering SQL Server" : "Inserted Successfully";
 }
 
 /*This is private class method for inserting into difficulty table while starting the server
 the input is read from the xml file*/
-string DatabaseImplementation::insert_into_difficulty(char* Name, int IsActive)
+void DatabaseImplementation::insert_into_difficulty(vector<Difficulty> DifficultyVector)
 {
 	SQLHANDLE SqlHandle = NULL;
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
 	SQLRETURN ReturnCode;
 	char SqlName[50];
 	SQLINTEGER  SqlIsActive, PtrValue = SQL_NTS;
-	ReturnCode = SQLPrepare(SqlHandle, (SQLWCHAR*)INSERT_INTO_DIFFICULTY, SQL_NTS);
-	ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, strlen(Name), 0, &SqlName, 0, &PtrValue);
-	strcpy_s((char*)SqlName, _countof(SqlName), Cryption.encoder(Name).c_str());//method to encrypt the string to human non-understandable form
-	ReturnCode = SQLBindParameter(SqlHandle, 2, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlIsActive, 0, &PtrValue);
-	SqlIsActive = IsActive;
-	ReturnCode = SQLExecute(SqlHandle);
+	int Size = DifficultyVector.size();
+	for (unsigned int i = 0; i < Size; i++)
+	{
+		char* Name = (char*)DifficultyVector[i].get_name().c_str();
+		int IsActive = DifficultyVector[i].get_is_active();
+		ReturnCode = SQLPrepare(SqlHandle, (SQLWCHAR*)INSERT_INTO_DIFFICULTY, SQL_NTS);
+		ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, strlen(Name), 0, &SqlName, 0, &PtrValue);
+		strcpy_s((char*)SqlName, _countof(SqlName), Cryption.encoder(Name).c_str());//method to encrypt the string to human non-understandable form
+		ReturnCode = SQLBindParameter(SqlHandle, 2, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlIsActive, 0, &PtrValue);
+		SqlIsActive = IsActive;
+		ReturnCode = SQLExecute(SqlHandle);
+	}
 	/*check whether the query is executed successfully if not then it will return string*/
 	SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
-	return (SQL_SUCCESS != ReturnCode) ? "Error Quering SQL Server" : "Inserted Successfully";
 }
 
 /*This is private class method for inserting into words table while starting the server
 the input is read from the xml file*/
-string DatabaseImplementation::insert_into_words(int CategoryId, int DifficultyId, char* Word, int IsActive)
+void DatabaseImplementation::insert_into_words(vector<Words> WordVector)
 {
 	SQLHANDLE SqlHandle = NULL;
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
 	SQLRETURN ReturnCode;
 	char SqlWord[50];
 	SQLINTEGER SqlIsActive, SqlCategoryId, SqlDifficultyId, PtrValue = SQL_NTS;
-	ReturnCode = SQLPrepare(SqlHandle, (SQLWCHAR*)INSERT_INTO_WORDS, SQL_NTS);
-	ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlCategoryId, 0, &PtrValue);
-	SqlCategoryId = CategoryId;
-	ReturnCode = SQLBindParameter(SqlHandle, 2, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlDifficultyId, 0, &PtrValue);
-	SqlDifficultyId = DifficultyId;
-	ReturnCode = SQLBindParameter(SqlHandle, 3, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, strlen(Word), 0, &SqlWord, 0, &PtrValue);
-	strcpy_s((char*)SqlWord, _countof(SqlWord), Cryption.encoder(Word).c_str());//method to encrypt the string to human non-understandable form
-	ReturnCode = SQLBindParameter(SqlHandle, 4, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlIsActive, 0, &PtrValue);
-	SqlIsActive = IsActive;
-	ReturnCode = SQLExecute(SqlHandle);
+	int Size = WordVector.size();
+	for (unsigned int i = 0; i < Size; i++)
+	{
+		int CategoryId = WordVector[i].get_category_id().get_id();
+		int DifficultyId = WordVector[i].get_difficulty_id().get_id();
+		char* Word = (char*)WordVector[i].get_word().c_str();
+		int IsActive = WordVector[i].get_is_active();
+		ReturnCode = SQLPrepare(SqlHandle, (SQLWCHAR*)INSERT_INTO_WORDS, SQL_NTS);
+		ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlCategoryId, 0, &PtrValue);
+		SqlCategoryId = CategoryId;
+		ReturnCode = SQLBindParameter(SqlHandle, 2, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlDifficultyId, 0, &PtrValue);
+		SqlDifficultyId = DifficultyId;
+		ReturnCode = SQLBindParameter(SqlHandle, 3, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, strlen(Word), 0, &SqlWord, 0, &PtrValue);
+		strcpy_s((char*)SqlWord, _countof(SqlWord), Cryption.encoder(Word).c_str());//method to encrypt the string to human non-understandable form
+		ReturnCode = SQLBindParameter(SqlHandle, 4, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlIsActive, 0, &PtrValue);
+		SqlIsActive = IsActive;
+		ReturnCode = SQLExecute(SqlHandle);
+	}
 	/*check whether the query is executed successfully if not then it will return string*/
 	SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
-	return (SQL_SUCCESS != ReturnCode) ? "Error Quering SQL Server" : "Inserted Successfully";
 }
 
 /*This method to execute procedure call*/
@@ -451,12 +465,12 @@ Before loading the data it will delete the already available data along with the
 and create a new table and insert the new data*/
 void DatabaseImplementation::load_data()
 {
-	DatabaseXmlParser Xml;
-	xml_document<> Document;
-	xml_node<> *Node;
 	ifstream File(XML_FILE);
 	if (File)
 	{
+		DatabaseXmlParser Xml;
+		xml_document<> Document;
+		xml_node<> *Node;
 		stringstream Buffer;
 		Buffer << File.rdbuf();
 		File.close();
@@ -464,12 +478,7 @@ void DatabaseImplementation::load_data()
 		Document.parse<0>(&Content[0]);
 		Node = Document.first_node();
 		Xml.set_node(Node);
-		vector<Category> CatergoryVector;
-		vector<Difficulty> DifficultyVector;
-		vector<Words> WordVector;
 		SQLRETURN ReturnCode;
-		string Status;
-
 		ReturnCode = procedure_call(CHECK_TABLE_PROCEDURE);
 		if ((SQL_SUCCESS != ReturnCode) && (ReturnCode != SQL_SUCCESS_WITH_INFO))
 		{
@@ -484,37 +493,31 @@ void DatabaseImplementation::load_data()
 			}
 			else
 			{
+				vector<Category> CatergoryVector;
 				CatergoryVector = Xml.get_category_from_xml(Xml.get_node());
-				for (size_t i = 0; i < CatergoryVector.size(); i++)
-				{
-					Status = insert_into_category((char*)CatergoryVector[i].get_name().c_str(), CatergoryVector[i].get_is_active());
-				}
-				ReturnCode = procedure_call(CREATE_DIFFICULTY_PROCEDURE);
-				if ((SQL_SUCCESS != ReturnCode) && (ReturnCode != SQL_SUCCESS_WITH_INFO))
-				{
-					return;
-				}
-				else
-				{
-					DifficultyVector = Xml.get_difficulty_from_xml(Xml.get_node());
-					for (size_t i = 0; i < DifficultyVector.size(); i++)
-					{
-						Status = insert_into_difficulty((char*)DifficultyVector[i].get_name().c_str(), DifficultyVector[i].get_is_active());
-					}
-					ReturnCode = procedure_call(CREATE_WORDS_PROCEDURE);
-					if ((SQL_SUCCESS != ReturnCode) && (ReturnCode != SQL_SUCCESS_WITH_INFO))
-					{
-						return;
-					}
-					else
-					{
-						WordVector = Xml.get_words_from_xml(Xml.get_node());
-						for (size_t i = 0; i < WordVector.size(); i++)
-						{
-							Status = insert_into_words(WordVector[i].get_category_id().get_id(), WordVector[i].get_difficulty_id().get_id(), (char*)WordVector[i].get_word().c_str(), WordVector[i].get_is_active());
-						}
-					}
-				}
+				insert_into_category(CatergoryVector);
+			}
+			ReturnCode = procedure_call(CREATE_DIFFICULTY_PROCEDURE);
+			if ((SQL_SUCCESS != ReturnCode) && (ReturnCode != SQL_SUCCESS_WITH_INFO))
+			{
+				return;
+			}
+			else
+			{
+				vector<Difficulty> DifficultyVector;
+				DifficultyVector = Xml.get_difficulty_from_xml(Xml.get_node());
+				insert_into_difficulty(DifficultyVector);
+			}
+			ReturnCode = procedure_call(CREATE_WORDS_PROCEDURE);
+			if ((SQL_SUCCESS != ReturnCode) && (ReturnCode != SQL_SUCCESS_WITH_INFO))
+			{
+				return;
+			}
+			else
+			{
+				vector<Words> WordVector;
+				WordVector = Xml.get_words_from_xml(Xml.get_node());
+				insert_into_words(WordVector);
 			}
 		}
 	}

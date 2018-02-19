@@ -19,9 +19,9 @@ private:
 	SQLRETURN procedure_call(SQLWCHAR* Query);
 	vector<GameDetails> get_game_details_from_sqlhandler(SQLHANDLE SqlHandle);
 	SQLHANDLE select(SQLHANDLE SqlHandle, SQLWCHAR* Query);
-	string insert_into_category(char* Name, int IsActive);
-	string insert_into_difficulty(char* Name, int IsActive);
-	string insert_into_words(int CategoryId, int DifficultyId, char* Word, int IsActive);
+	void insert_into_category(vector<Category>);
+	void insert_into_difficulty(vector<Difficulty>);
+	void insert_into_words(vector<Words>);
 public:
 	DatabaseImplementation();
 	~DatabaseImplementation();

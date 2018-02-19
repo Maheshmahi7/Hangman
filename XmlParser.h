@@ -8,19 +8,22 @@
 #include "Property.h"
 #include <fstream>
 #include <iostream>
+#include <string>
+#include <vector>
 #include <sstream>
-
 
 using namespace std;
 using namespace rapidxml;
 
-class DatabaseXmlParser
+class XmlParser
 {
 private:
 	xml_document<> Document;
 	xml_node<> *Node;
-	
+
 public:
+	XmlParser();
+	~XmlParser();
 	xml_node<> *create_parser();
 	vector<Category> get_category_from_xml(xml_node<> *Node);
 	vector<Difficulty> get_difficulty_from_xml(xml_node<> *Node);
