@@ -4,6 +4,7 @@
 then the encryption key value is set here*/
 DatabaseImplementation::DatabaseImplementation()
 {
+	SubTest = Logger::getInstance(LOG4CPLUS_TEXT("Database Implementation"));
 	SqlConnHandle = Connection.get_connection_handler();
 }
 
@@ -22,6 +23,7 @@ SQLHANDLE DatabaseImplementation::select(SQLHANDLE SqlHandle, SQLWCHAR* Query)
 /*This method is to get list of category from database and return it as vector of category object*/
 vector<Category> DatabaseImplementation::get_category()
 {
+	LOG4CPLUS_INFO(SubTest, "Getting Category from Database");
 	vector<Category> CategoryVector;
 	Category CategoryObject;
 	SQLHANDLE SqlHandle = NULL;
@@ -44,6 +46,10 @@ vector<Category> DatabaseImplementation::get_category()
 			CategoryVector.push_back(CategoryObject);
 		}
 	}
+	else
+	{
+		LOG4CPLUS_ERROR(SubTest, "Cannot get Category from Database");
+	}
 	SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
 	return CategoryVector;
 }
@@ -51,6 +57,7 @@ vector<Category> DatabaseImplementation::get_category()
 /*This method is to get list of difficulty from database and return it as vector of difficulty object*/
 vector<Difficulty> DatabaseImplementation::get_difficulty()
 {
+	LOG4CPLUS_INFO(SubTest, "Getting Difficulty from Database");
 	vector<Difficulty> DifficultyVector;
 	Difficulty DifficultyObject;
 	SQLHANDLE SqlHandle = NULL;
@@ -73,6 +80,10 @@ vector<Difficulty> DatabaseImplementation::get_difficulty()
 			DifficultyVector.push_back(DifficultyObject);
 		}
 	}
+	else
+	{
+		LOG4CPLUS_ERROR(SubTest, "Cannot get Difficulty from Database");
+	}
 	SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
 	return DifficultyVector;
 }
@@ -80,13 +91,18 @@ vector<Difficulty> DatabaseImplementation::get_difficulty()
 /*This method is to get the currently playing game details and send the list as vector of Gamedetails object to business logic */
 vector<GameDetails> DatabaseImplementation::get_playing_game_detail()
 {
+	LOG4CPLUS_INFO(SubTest, "Getting Game details from Database");
 	vector<GameDetails> GameDetailsVector;
 	SQLHANDLE SqlHandle = NULL;
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
 	/*check whether the query is executed successfully if not then it will return empty vector*/
 	if (SqlHandle = (select(SqlHandle, GET_PLAYING_GAME_DETAILS)))
 	{
-		GameDetailsVector = get_game_details_from_sqlhandler(SqlHandle);
+		GameDetailsVector = get_game_details(SqlHandle);
+	}
+	else
+	{
+		LOG4CPLUS_ERROR(SubTest, "Cannot get Game details from Database");
 	}
 	SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
 	return GameDetailsVector;
@@ -95,6 +111,7 @@ vector<GameDetails> DatabaseImplementation::get_playing_game_detail()
 /*This method is to get a particular currently playing game detail and sent it as vector of gamedetails to business logic*/
 vector<GameDetails> DatabaseImplementation::get_playing_game_detail(int GameId)
 {
+	LOG4CPLUS_INFO(SubTest, "Getting Game details with Game id from Database");
 	vector<GameDetails> GameDetailsVector;
 	SQLHANDLE SqlHandle = NULL;
 	SQLRETURN ReturnCode;
@@ -107,20 +124,22 @@ vector<GameDetails> DatabaseImplementation::get_playing_game_detail(int GameId)
 	/*check whether the query is executed successfully if not then it will return empty vector*/
 	if (SQL_SUCCESS != ReturnCode)
 	{
+		LOG4CPLUS_ERROR(SubTest, "Cannot get Game details with game id from Database");
 		SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
 		return GameDetailsVector;
 	}
 	else
 	{
-		GameDetailsVector = get_game_details_from_sqlhandler(SqlHandle);
+		GameDetailsVector = get_game_details(SqlHandle);
 	}
 	SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
 	return GameDetailsVector;
 }
 
 /*This method is to return gamedetails vector for the given SqlHandler*/
-vector<GameDetails> DatabaseImplementation::get_game_details_from_sqlhandler(SQLHANDLE SqlHandle)
+vector<GameDetails> DatabaseImplementation::get_game_details(SQLHANDLE SqlHandle)
 {
+	LOG4CPLUS_INFO(SubTest, "Getting Game details from SQl handler");
 	vector<GameDetails> GameDetailsVector;
 	GameDetails GameDetailsObject;
 	Words WordObject;
@@ -146,6 +165,7 @@ vector<GameDetails> DatabaseImplementation::get_game_details_from_sqlhandler(SQL
 /*This method is to give the socket address for the given game id*/
 vector<int> DatabaseImplementation::get_socket_address_by_game_id(int GameId)
 {
+	LOG4CPLUS_INFO(SubTest, "Getting Socket address with game id from Database");
 	vector<int> SocketVector;
 	SQLHANDLE SqlHandle = NULL;
 	SQLRETURN ReturnCode;
@@ -158,6 +178,7 @@ vector<int> DatabaseImplementation::get_socket_address_by_game_id(int GameId)
 	/*check whether the query is executed successfully if not then it will return empty vector*/
 	if (SQL_SUCCESS != ReturnCode)
 	{
+		LOG4CPLUS_ERROR(SubTest, "Cannot get Socket Address with game id from Database");
 		SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
 		return SocketVector;
 	}
@@ -178,6 +199,7 @@ vector<int> DatabaseImplementation::get_socket_address_by_game_id(int GameId)
 /*This method is to give the maximum game id to the business logic for creating a new unique game id for new game*/
 int DatabaseImplementation::get_maximum_game_id()
 {
+	LOG4CPLUS_INFO(SubTest, "Getting Maximum game id from Database");
 	SQLHANDLE SqlHandle = NULL;
 	SQLINTEGER GameId, PtrSqlVersion;
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
@@ -192,12 +214,17 @@ int DatabaseImplementation::get_maximum_game_id()
 
 		SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
 	}
+	else
+	{
+		LOG4CPLUS_ERROR(SubTest, "Cannot get Maximum game id from Database");
+	}
 	return (GameId > 0) ? (GameId == 1024) ? 0 : GameId : 0;
 }
 
 /*This method id to update the game result by using the game id*/
 string DatabaseImplementation::update_game_result(int GameId, char* Result)
 {
+	LOG4CPLUS_INFO(SubTest, "Updating Game result to Database");
 	SQLHANDLE SqlHandle = NULL;
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
 	SQLRETURN ReturnCode;
@@ -211,11 +238,21 @@ string DatabaseImplementation::update_game_result(int GameId, char* Result)
 	ReturnCode = SQLExecute(SqlHandle);
 	/*check whether the query is executed successfully if not then it will return a string*/
 	SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
-	return (SQL_SUCCESS != ReturnCode) ? "Error Quering SQL Server" : "Updated Successfully";
+	if (SQL_SUCCESS != ReturnCode)
+	{
+		LOG4CPLUS_ERROR(SubTest, "Error Quering SQL Server");
+		return "Error Quering SQL Server";
+	}
+	else
+	{
+		LOG4CPLUS_INFO(SubTest, "Updated Successfully");
+		return "Updated Successfully";
+	}
 }
 
 string DatabaseImplementation::update_game_result(int GameId, int SocketAddress, char* Result)
 {
+	LOG4CPLUS_INFO(SubTest, "Updating Game result for disconnected client to Database");
 	SQLHANDLE SqlHandle = NULL;
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
 	SQLRETURN ReturnCode;
@@ -231,14 +268,25 @@ string DatabaseImplementation::update_game_result(int GameId, int SocketAddress,
 	ReturnCode = SQLExecute(SqlHandle);
 	/*check whether the query is executed successfully if not then it will return a string*/
 	SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
-	return (SQL_SUCCESS != ReturnCode) ? "Error Quering SQL Server" : "Updated Successfully";
+	if (SQL_SUCCESS != ReturnCode)
+	{
+		LOG4CPLUS_ERROR(SubTest, "Error Quering SQL Server");
+		return "Error Quering SQL Server";
+	}
+	else
+	{
+		LOG4CPLUS_INFO(SubTest, "Updated Successfully");
+		return "Updated Successfully";
+	}
 }
 
 /*This method is used to get the Updated result from gamedetails with the game id*/
 /*This method is for testing purpose only*/
 vector<GameDetails> DatabaseImplementation::get_updated_result(int GameId)
 {
+	LOG4CPLUS_INFO(SubTest, "Getting Game results from Database(Testing purpose)");
 	SQLHANDLE SqlHandle = NULL;
+	vector<GameDetails> GameDetailsVector;
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
 	SQLRETURN ReturnCode;
 	SQLINTEGER SqlGameId, PtrValue = SQL_NTS;
@@ -246,18 +294,25 @@ vector<GameDetails> DatabaseImplementation::get_updated_result(int GameId)
 	ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlGameId, 0, &PtrValue);
 	SqlGameId = GameId;
 	ReturnCode = SQLExecute(SqlHandle);
-	vector<GameDetails> GameDetailsVector;
-	GameDetails GameDetailsObject;
-	SQLINTEGER Id, PtrSqlVersion;
-	SQLCHAR Result[50];
-	/*while loop to fetch the data from the handler and store it into vector*/
-	while (SQLFetch(SqlHandle) == SQL_SUCCESS)
+	if (SQL_SUCCESS != ReturnCode)
 	{
-		SQLGetData(SqlHandle, 1, SQL_INTEGER, &Id, 0, &PtrSqlVersion);
-		SQLGetData(SqlHandle, 2, SQL_CHAR, Result, 50, &PtrSqlVersion);
-		GameDetailsObject.set_game_id(Id);
-		GameDetailsObject.set_result((char*)Result);
-		GameDetailsVector.push_back(GameDetailsObject);
+		LOG4CPLUS_ERROR(SubTest, "Error Quering SQL Server");
+		return GameDetailsVector;
+	}
+	else
+	{
+		GameDetails GameDetailsObject;
+		SQLINTEGER Id, PtrSqlVersion;
+		SQLCHAR Result[50];
+		/*while loop to fetch the data from the handler and store it into vector*/
+		while (SQLFetch(SqlHandle) == SQL_SUCCESS)
+		{
+			SQLGetData(SqlHandle, 1, SQL_INTEGER, &Id, 0, &PtrSqlVersion);
+			SQLGetData(SqlHandle, 2, SQL_CHAR, Result, 50, &PtrSqlVersion);
+			GameDetailsObject.set_game_id(Id);
+			GameDetailsObject.set_result((char*)Result);
+			GameDetailsVector.push_back(GameDetailsObject);
+		}
 	}
 	return GameDetailsVector;
 }
@@ -266,7 +321,9 @@ vector<GameDetails> DatabaseImplementation::get_updated_result(int GameId)
 /*This method is for testing purpose only*/
 vector<GameDetails> DatabaseImplementation::get_updated_result(int GameId, int SocketAddress)
 {
+	LOG4CPLUS_INFO(SubTest, "Getting Game results from Database(Testing purpose)");
 	SQLHANDLE SqlHandle = NULL;
+	vector<GameDetails> GameDetailsVector;
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
 	SQLRETURN ReturnCode;
 	SQLINTEGER SqlGameId, SqlSocketAddress, PtrValue = SQL_NTS;
@@ -276,18 +333,25 @@ vector<GameDetails> DatabaseImplementation::get_updated_result(int GameId, int S
 	SqlGameId = GameId;
 	SqlSocketAddress = SocketAddress;
 	ReturnCode = SQLExecute(SqlHandle);
-	vector<GameDetails> GameDetailsVector;
-	GameDetails GameDetailsObject;
-	SQLINTEGER Id, PtrSqlVersion;
-	SQLCHAR Result[50];
-	/*while loop to fetch the data from the handler and store it into vector*/
-	while (SQLFetch(SqlHandle) == SQL_SUCCESS)
+	if (SQL_SUCCESS != ReturnCode)
 	{
-		SQLGetData(SqlHandle, 1, SQL_INTEGER, &Id, 0, &PtrSqlVersion);
-		SQLGetData(SqlHandle, 2, SQL_CHAR, Result, 50, &PtrSqlVersion);
-		GameDetailsObject.set_game_id(Id);
-		GameDetailsObject.set_result((char*)Result);
-		GameDetailsVector.push_back(GameDetailsObject);
+		LOG4CPLUS_ERROR(SubTest, "Error Quering SQL Server");
+		return GameDetailsVector;
+	}
+	else
+	{
+		GameDetails GameDetailsObject;
+		SQLINTEGER Id, PtrSqlVersion;
+		SQLCHAR Result[50];
+		/*while loop to fetch the data from the handler and store it into vector*/
+		while (SQLFetch(SqlHandle) == SQL_SUCCESS)
+		{
+			SQLGetData(SqlHandle, 1, SQL_INTEGER, &Id, 0, &PtrSqlVersion);
+			SQLGetData(SqlHandle, 2, SQL_CHAR, Result, 50, &PtrSqlVersion);
+			GameDetailsObject.set_game_id(Id);
+			GameDetailsObject.set_result((char*)Result);
+			GameDetailsVector.push_back(GameDetailsObject);
+		}
 	}
 	return GameDetailsVector;
 }
@@ -295,6 +359,7 @@ vector<GameDetails> DatabaseImplementation::get_updated_result(int GameId, int S
 /*This method will give a random word from database for a new game based on category name and difficulty name choosen by the user*/
 string DatabaseImplementation::get_word(char* CategoryName, char* DifficultyName)
 {
+	LOG4CPLUS_INFO(SubTest, "Getting Random Word from Database");
 	SQLHANDLE SqlHandle = NULL;
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
 	SQLRETURN ReturnCode;
@@ -308,6 +373,7 @@ string DatabaseImplementation::get_word(char* CategoryName, char* DifficultyName
 	/*check whether the query is executed successfully if not then it will return string*/
 	if (SQL_SUCCESS != SQLExecute(SqlHandle))
 	{
+		LOG4CPLUS_ERROR(SubTest, "Error Quering SQL Server");
 		SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
 		return "Error querying SQL Server";
 	}
@@ -327,6 +393,7 @@ string DatabaseImplementation::get_word(char* CategoryName, char* DifficultyName
 /*This method is used to insert game details into databse for maintaining game records*/
 string DatabaseImplementation::insert_into_game_details(int GameId, char* UserName, int SocketAddress, char* Word)
 {
+	LOG4CPLUS_INFO(SubTest, "Inserting Game details into Database");
 	SQLHANDLE SqlHandle = NULL;
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
 	SQLRETURN ReturnCode;
@@ -340,6 +407,7 @@ string DatabaseImplementation::insert_into_game_details(int GameId, char* UserNa
 	/*check whether the query is executed successfully if not then it will return string*/
 	if (SQL_SUCCESS != SQLExecute(SqlHandle))
 	{
+		LOG4CPLUS_ERROR(SubTest, "Error Quering SQL Server");
 		SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
 		return "Error querying SQL Server";
 	}
@@ -365,13 +433,23 @@ string DatabaseImplementation::insert_into_game_details(int GameId, char* UserNa
 	ReturnCode = SQLExecute(SqlHandle);
 	/*check whether the query is executed successfully if not then it will return string*/
 	SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
-	return (SQL_SUCCESS != ReturnCode) ? "Error Quering SQL Server" : "Inserted Successfully";
+	if (SQL_SUCCESS != ReturnCode)
+	{
+		LOG4CPLUS_ERROR(SubTest, "Error Quering SQL Server");
+		return "Error Quering SQL Server";
+	}
+	else
+	{
+		LOG4CPLUS_INFO(SubTest, "Inserted Successfully");
+		return "Inserted Successfully";
+	}
 }
 
 /*This is private class method for inserting into category table while starting the server
 the input is read from the xml file*/
 void DatabaseImplementation::insert_into_category(vector<Category> CategoryVector)
 {
+	LOG4CPLUS_INFO(SubTest, "Inserting Category details into Database");
 	SQLHANDLE SqlHandle = NULL;
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
 	SQLRETURN ReturnCode;
@@ -380,14 +458,22 @@ void DatabaseImplementation::insert_into_category(vector<Category> CategoryVecto
 	int Size = CategoryVector.size();
 	for (unsigned int i = 0; i < Size; i++)
 	{
-		char* Name = (char*)CategoryVector[i].get_name().c_str();
+		string Name = CategoryVector[i].get_name();
 		int IsActive = CategoryVector[i].get_is_active();
 		ReturnCode = SQLPrepare(SqlHandle, (SQLWCHAR*)INSERT_INTO_CATEGORY, SQL_NTS);
-		ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, strlen(Name), 0, &SqlName, 0, &PtrValue);
+		ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, Name.size(), 0, &SqlName, 0, &PtrValue);
 		strcpy_s((char*)SqlName, _countof(SqlName), Cryption.encoder(Name).c_str());//method to encrypt the string to human non-understandable form
 		ReturnCode = SQLBindParameter(SqlHandle, 2, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlIsActive, 0, &PtrValue);
 		SqlIsActive = IsActive;
 		ReturnCode = SQLExecute(SqlHandle);
+	}
+	if (SQL_SUCCESS != ReturnCode)
+	{
+		LOG4CPLUS_ERROR(SubTest, "Error Quering SQL Server");
+	}
+	else
+	{
+		LOG4CPLUS_INFO(SubTest, "Inserted Successfully");
 	}
 	/*check whether the query is executed successfully if not then it will return string*/
 	SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
@@ -397,6 +483,7 @@ void DatabaseImplementation::insert_into_category(vector<Category> CategoryVecto
 the input is read from the xml file*/
 void DatabaseImplementation::insert_into_difficulty(vector<Difficulty> DifficultyVector)
 {
+	LOG4CPLUS_INFO(SubTest, "Inserting Difficulty details into Database");
 	SQLHANDLE SqlHandle = NULL;
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
 	SQLRETURN ReturnCode;
@@ -405,14 +492,22 @@ void DatabaseImplementation::insert_into_difficulty(vector<Difficulty> Difficult
 	int Size = DifficultyVector.size();
 	for (unsigned int i = 0; i < Size; i++)
 	{
-		char* Name = (char*)DifficultyVector[i].get_name().c_str();
+		string Name = DifficultyVector[i].get_name();
 		int IsActive = DifficultyVector[i].get_is_active();
 		ReturnCode = SQLPrepare(SqlHandle, (SQLWCHAR*)INSERT_INTO_DIFFICULTY, SQL_NTS);
-		ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, strlen(Name), 0, &SqlName, 0, &PtrValue);
+		ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, Name.size(), 0, &SqlName, 0, &PtrValue);
 		strcpy_s((char*)SqlName, _countof(SqlName), Cryption.encoder(Name).c_str());//method to encrypt the string to human non-understandable form
 		ReturnCode = SQLBindParameter(SqlHandle, 2, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlIsActive, 0, &PtrValue);
 		SqlIsActive = IsActive;
 		ReturnCode = SQLExecute(SqlHandle);
+	}
+	if (SQL_SUCCESS != ReturnCode)
+	{
+		LOG4CPLUS_ERROR(SubTest, "Error Quering SQL Server");
+	}
+	else
+	{
+		LOG4CPLUS_INFO(SubTest, "Inserted Successfully");
 	}
 	/*check whether the query is executed successfully if not then it will return string*/
 	SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
@@ -422,6 +517,7 @@ void DatabaseImplementation::insert_into_difficulty(vector<Difficulty> Difficult
 the input is read from the xml file*/
 void DatabaseImplementation::insert_into_words(vector<Words> WordVector)
 {
+	LOG4CPLUS_INFO(SubTest, "Inserting Word details into Database");
 	SQLHANDLE SqlHandle = NULL;
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
 	SQLRETURN ReturnCode;
@@ -432,23 +528,30 @@ void DatabaseImplementation::insert_into_words(vector<Words> WordVector)
 	{
 		int CategoryId = WordVector[i].get_category_id().get_id();
 		int DifficultyId = WordVector[i].get_difficulty_id().get_id();
-		char* Word = (char*)WordVector[i].get_word().c_str();
+		string Word = WordVector[i].get_word();
 		int IsActive = WordVector[i].get_is_active();
 		ReturnCode = SQLPrepare(SqlHandle, (SQLWCHAR*)INSERT_INTO_WORDS, SQL_NTS);
 		ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlCategoryId, 0, &PtrValue);
 		SqlCategoryId = CategoryId;
 		ReturnCode = SQLBindParameter(SqlHandle, 2, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlDifficultyId, 0, &PtrValue);
 		SqlDifficultyId = DifficultyId;
-		ReturnCode = SQLBindParameter(SqlHandle, 3, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, strlen(Word), 0, &SqlWord, 0, &PtrValue);
+		ReturnCode = SQLBindParameter(SqlHandle, 3, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, Word.size(), 0, &SqlWord, 0, &PtrValue);
 		strcpy_s((char*)SqlWord, _countof(SqlWord), Cryption.encoder(Word).c_str());//method to encrypt the string to human non-understandable form
 		ReturnCode = SQLBindParameter(SqlHandle, 4, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &SqlIsActive, 0, &PtrValue);
 		SqlIsActive = IsActive;
 		ReturnCode = SQLExecute(SqlHandle);
 	}
+	if (SQL_SUCCESS != ReturnCode)
+	{
+		LOG4CPLUS_ERROR(SubTest, "Error Quering SQL Server");
+	}
+	else
+	{
+		LOG4CPLUS_INFO(SubTest, "Inserted Successfully");
+	}
 	/*check whether the query is executed successfully if not then it will return string*/
 	SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
 }
-
 /*This method to execute procedure call*/
 SQLRETURN DatabaseImplementation::procedure_call(SQLWCHAR* Query)
 {
@@ -465,9 +568,11 @@ Before loading the data it will delete the already available data along with the
 and create a new table and insert the new data*/
 void DatabaseImplementation::load_data()
 {
+	
 	ifstream File(XML_FILE);
 	if (File)
 	{
+		LOG4CPLUS_INFO(SubTest, "Loading the DataBase with the Value from the Data.xml file");
 		DatabaseXmlParser Xml;
 		xml_document<> Document;
 		xml_node<> *Node;
@@ -482,6 +587,7 @@ void DatabaseImplementation::load_data()
 		ReturnCode = procedure_call(CHECK_TABLE_PROCEDURE);
 		if ((SQL_SUCCESS != ReturnCode) && (ReturnCode != SQL_SUCCESS_WITH_INFO))
 		{
+			LOG4CPLUS_ERROR(SubTest, "Error Quering SQL Procedure");
 			return;
 		}
 		else
@@ -489,6 +595,7 @@ void DatabaseImplementation::load_data()
 			ReturnCode = procedure_call(CREATE_CATEGORY_PROCEDURE);
 			if ((SQL_SUCCESS != ReturnCode) && (ReturnCode != SQL_SUCCESS_WITH_INFO))
 			{
+				LOG4CPLUS_ERROR(SubTest, "Error Quering SQL Procedure");
 				return;
 			}
 			else
@@ -500,6 +607,7 @@ void DatabaseImplementation::load_data()
 			ReturnCode = procedure_call(CREATE_DIFFICULTY_PROCEDURE);
 			if ((SQL_SUCCESS != ReturnCode) && (ReturnCode != SQL_SUCCESS_WITH_INFO))
 			{
+				LOG4CPLUS_ERROR(SubTest, "Error Quering SQL Procedure");
 				return;
 			}
 			else
@@ -511,6 +619,7 @@ void DatabaseImplementation::load_data()
 			ReturnCode = procedure_call(CREATE_WORDS_PROCEDURE);
 			if ((SQL_SUCCESS != ReturnCode) && (ReturnCode != SQL_SUCCESS_WITH_INFO))
 			{
+				LOG4CPLUS_ERROR(SubTest, "Error Quering SQL Procedure");
 				return;
 			}
 			else
@@ -524,5 +633,6 @@ void DatabaseImplementation::load_data()
 	else
 	{
 		cout << "Data.Xml file is missing so the program starts with old data" << endl;
+		LOG4CPLUS_WARN(SubTest, "Data.Xml file is missing so the program starts with old data");
 	}
 }

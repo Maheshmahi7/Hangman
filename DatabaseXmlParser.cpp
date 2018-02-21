@@ -1,5 +1,14 @@
 #include "DatabaseXmlParser.h"
 
+DatabaseXmlParser::DatabaseXmlParser()
+{
+	SubTest = Logger::getInstance(LOG4CPLUS_TEXT("Xml Parser"));
+}
+DatabaseXmlParser::~DatabaseXmlParser()
+{
+
+}
+
 /*Getter and setter method for the varibale xml_node*/
 void DatabaseXmlParser::set_node(xml_node<>* Node)
 {
@@ -14,6 +23,7 @@ xml_node<>* DatabaseXmlParser::get_node()
 /*This method reads a xml file for the category tag and return a vector of categories object*/
 vector<Category> DatabaseXmlParser::get_category_from_xml(xml_node<>* Node)
 {
+	LOG4CPLUS_INFO(SubTest, "Getting Category Data from Xml File");
 	Category CategoryObject;
 	vector<Category> CategoryVector;
 	xml_node<> *NodeCategories = Node->first_node(CATEGORIES);	
@@ -35,6 +45,7 @@ vector<Category> DatabaseXmlParser::get_category_from_xml(xml_node<>* Node)
 /*This method reads a xml file for the difficulty tag and return a vector of difficulty object*/
 vector<Difficulty> DatabaseXmlParser::get_difficulty_from_xml(xml_node<>* Node)
 {
+	LOG4CPLUS_INFO(SubTest, "Getting Difficulty Data from Xml File");
 	Difficulty DifficultyObject;
 	vector<Difficulty> DifficultyVector;
 	xml_node<> *NodeDifficulties = Node->first_node(DIFFICULTIES);
@@ -56,6 +67,7 @@ vector<Difficulty> DatabaseXmlParser::get_difficulty_from_xml(xml_node<>* Node)
 /*This method reads a xml file for the word tag and return a vector of word object*/
 vector<Words> DatabaseXmlParser::get_words_from_xml(xml_node<>* Node)
 {
+	LOG4CPLUS_INFO(SubTest, "Getting Words Data from Xml File");
 	Words WordObject;
 	Category CategoryObject;
 	Difficulty DifficultyObject;

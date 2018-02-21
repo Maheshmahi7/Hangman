@@ -6,6 +6,7 @@
 #include "Difficulty.h"
 #include "Words.h"
 #include "Property.h"
+#include "Logger4CPlus.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -19,8 +20,10 @@ class DatabaseXmlParser
 private:
 	xml_document<> Document;
 	xml_node<> *Node;
-	
+	Logger SubTest;
 public:
+	DatabaseXmlParser();
+	~DatabaseXmlParser();
 	xml_node<> *create_parser();
 	vector<Category> get_category_from_xml(xml_node<> *Node);
 	vector<Difficulty> get_difficulty_from_xml(xml_node<> *Node);

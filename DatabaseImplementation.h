@@ -7,17 +7,19 @@
 #include "Words.h"
 #include "GameDetails.h"
 #include "DatabaseXmlParser.h"
+#include "Logger4CPlus.h"
 #include "Property.h"
 
 class DatabaseImplementation :
 	public DatabaseInterface
 {
 private:
+	Logger SubTest;
 	SQLHANDLE SqlConnHandle;
 	DatabaseConnection Connection;
 	Coder Cryption;
 	SQLRETURN procedure_call(SQLWCHAR* Query);
-	vector<GameDetails> get_game_details_from_sqlhandler(SQLHANDLE SqlHandle);
+	vector<GameDetails> get_game_details(SQLHANDLE SqlHandle);
 	SQLHANDLE select(SQLHANDLE SqlHandle, SQLWCHAR* Query);
 	void insert_into_category(vector<Category>);
 	void insert_into_difficulty(vector<Difficulty>);
