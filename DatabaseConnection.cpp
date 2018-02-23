@@ -13,34 +13,14 @@ DatabaseConnection::DatabaseConnection()
 		{
 			if (SQL_SUCCESS == SQLAllocHandle(SQL_HANDLE_DBC, SqlEnvHandle, &SqlConnHandle))
 			{
-				switch (SQLDriverConnect(SqlConnHandle,
+				SQLDriverConnect(SqlConnHandle,
 					NULL,
 					CONNECTION_DRIVER,
 					SQL_NTS,
 					RetConString,
 					1024,
 					NULL,
-					SQL_DRIVER_NOPROMPT))
-				{
-				case SQL_SUCCESS:
-					LOG4CPLUS_INFO(SubTest, "Successfully connected to SQL Server");
-					break;
-
-				case SQL_SUCCESS_WITH_INFO:
-					LOG4CPLUS_INFO(SubTest, "Successfully connected to SQL Server");
-					break;
-
-				case SQL_INVALID_HANDLE:
-					LOG4CPLUS_FATAL(SubTest, "Could not connect to SQL Server");
-					break;
-
-				case SQL_ERROR:
-					LOG4CPLUS_FATAL(SubTest, "Could not connect to SQL Server");
-					break;
-
-				default:
-					break;
-				}
+					SQL_DRIVER_NOPROMPT);
 				SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
 			}
 		}

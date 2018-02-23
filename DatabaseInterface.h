@@ -23,5 +23,6 @@ public:
 	virtual vector<int> get_socket_address_by_game_id(int GameId) = 0;
 	virtual vector<GameDetails> get_updated_result(int GameId) = 0;
 	virtual vector<GameDetails> get_updated_result(int GameId, int SocketAddress) = 0;
+	virtual string get_category_name_by_word(char* Word) = 0;
 
 };

@@ -41,5 +41,6 @@ protected:
 	vector<int> get_socket_address_by_game_id(int GameId);
 	vector<GameDetails> get_updated_result(int GameId);
 	vector<GameDetails> get_updated_result(int GameId, int SocketAddress);
+	string get_category_name_by_word(char* Word);
 };
 
