@@ -48,11 +48,13 @@
 
 #define WORDS "Words"
 
+#define ENDGAME "EndGame"
+
 #define WORDNAME "Word"
 
 #define NAME "Name"
 
-#define IS_ACTIVE "IsActive"
+#define IS_ACTIVE "IsActive" 
 
 #define CATEGORY_ID "CategoryId"
 
@@ -60,7 +62,7 @@
 
 #define XML_FILE "Data.xml"
 
-#define CONNECTION_DRIVER L"DRIVER={SQL Server};SERVER=IN11W-TRAINEE6\\SQLEXPRESS,49342;DATABASE=Hangman;Trusted=true;"
+#define CONNECTION_DRIVER L"DRIVER={SQL Server};SERVER=IN11W-TRAINEE5\\SQLEXPRESS,49400;DATABASE=Hangman;Trusted=true;"
 
 #define CHECK_TABLE_PROCEDURE L"{ CALL CheckTable}"
 
@@ -79,6 +81,8 @@
 #define INSERT_INTO_GAME_DETAILS L"insert into gamedetails(gameid, username, wordid, socketaddress) values(?,?,?,?)"
 
 #define SELECT_WORD_ID L"select id from words where word = ?"
+
+#define GET_CATEGORY_NAME_WITH_WORD L"select category.name from category join words on category.id = words.categoryid where words.word= ? "
 
 #define GET_WORD L"select top 1 word from words join category on category.id = words.categoryid join difficulty on difficulty.id = words.difficultyid where category.name = ? and difficulty.name = ? order by newid()"
 

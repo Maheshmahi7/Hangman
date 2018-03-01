@@ -201,7 +201,7 @@ int DatabaseImplementation::get_maximum_game_id()
 {
 	LOG4CPLUS_INFO(SubTest, "Getting Maximum game id from Database");
 	SQLHANDLE SqlHandle = NULL;
-	SQLINTEGER GameId, PtrSqlVersion;
+	SQLINTEGER GameId = 0, PtrSqlVersion;
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
 	/*check whether the query is executed successfully if not then it will return -1 to indicate no execution failed*/
 	if (SqlHandle = (select(SqlHandle, GET_MAXIMUM_GAME_ID)))
@@ -390,6 +390,40 @@ string DatabaseImplementation::get_word(char* CategoryName, char* DifficultyName
 	}
 }
 
+/*This method is used to get category name for a given word*/
+string DatabaseImplementation::get_category_name_by_word(char* Word)
+{
+	LOG4CPLUS_INFO(SubTest, "Getting Category name from Database");
+	SQLHANDLE SqlHandle = NULL;
+	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
+	SQLRETURN ReturnCode;
+	int WordId = 0;
+	char SqlWord[50],SqlCategoryName[50];
+	SQLINTEGER PtrValue = SQL_NTS, PtrSqlVersion;
+
+	ReturnCode = SQLPrepare(SqlHandle, GET_CATEGORY_NAME_WITH_WORD, SQL_NTS);
+	ReturnCode = SQLBindParameter(SqlHandle, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, strlen(Word), 0, &SqlWord, 0, &PtrValue);
+	strcpy_s((char*)SqlWord, _countof(SqlWord), Cryption.encoder(Word).c_str());//method to encrypt the string to human non-understandable form
+	/*check whether the query is executed successfully if not then it will return string*/
+	if (SQL_SUCCESS != SQLExecute(SqlHandle))
+	{
+		LOG4CPLUS_ERROR(SubTest, "Error Quering SQL Server");
+		SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
+		return "Error querying SQL Server";
+	}
+	else
+	{
+		/*while loop to fetch the data from the handler*/
+		while (SQLFetch(SqlHandle) == SQL_SUCCESS)
+		{
+			SQLGetData(SqlHandle, 1, SQL_CHAR, &SqlCategoryName, 50, &PtrSqlVersion);
+		}
+	}
+	SQLFreeHandle(SQL_HANDLE_STMT, SqlHandle);
+	return Cryption.decoder(SqlCategoryName);
+}
+
+
 /*This method is used to insert game details into databse for maintaining game records*/
 string DatabaseImplementation::insert_into_game_details(int GameId, char* UserName, int SocketAddress, char* Word)
 {
@@ -397,7 +431,7 @@ string DatabaseImplementation::insert_into_game_details(int GameId, char* UserNa
 	SQLHANDLE SqlHandle = NULL;
 	SQLAllocHandle(SQL_HANDLE_STMT, SqlConnHandle, &SqlHandle);
 	SQLRETURN ReturnCode;
-	int WordId;
+	int WordId = 0;
 	char SqlUserName[50], SqlWord[50];
 	SQLINTEGER SqlGameId, SqlWordId, SqlSocketAddress, PtrValue = SQL_NTS, PtrSqlVersion;
 
@@ -456,7 +490,7 @@ void DatabaseImplementation::insert_into_category(vector<Category> CategoryVecto
 	char SqlName[50];
 	SQLINTEGER SqlIsActive, PtrValue = SQL_NTS;
 	int Size = CategoryVector.size();
-	for (unsigned int i = 0; i < Size; i++)
+	for (int i = 0; i < Size; i++)
 	{
 		string Name = CategoryVector[i].get_name();
 		int IsActive = CategoryVector[i].get_is_active();
@@ -490,7 +524,7 @@ void DatabaseImplementation::insert_into_difficulty(vector<Difficulty> Difficult
 	char SqlName[50];
 	SQLINTEGER  SqlIsActive, PtrValue = SQL_NTS;
 	int Size = DifficultyVector.size();
-	for (unsigned int i = 0; i < Size; i++)
+	for (int i = 0; i < Size; i++)
 	{
 		string Name = DifficultyVector[i].get_name();
 		int IsActive = DifficultyVector[i].get_is_active();
@@ -524,7 +558,7 @@ void DatabaseImplementation::insert_into_words(vector<Words> WordVector)
 	char SqlWord[50];
 	SQLINTEGER SqlIsActive, SqlCategoryId, SqlDifficultyId, PtrValue = SQL_NTS;
 	int Size = WordVector.size();
-	for (unsigned int i = 0; i < Size; i++)
+	for (int i = 0; i < Size; i++)
 	{
 		int CategoryId = WordVector[i].get_category_id().get_id();
 		int DifficultyId = WordVector[i].get_difficulty_id().get_id();
@@ -568,7 +602,6 @@ Before loading the data it will delete the already available data along with the
 and create a new table and insert the new data*/
 void DatabaseImplementation::load_data()
 {
-	
 	ifstream File(XML_FILE);
 	if (File)
 	{
@@ -587,7 +620,7 @@ void DatabaseImplementation::load_data()
 		ReturnCode = procedure_call(CHECK_TABLE_PROCEDURE);
 		if ((SQL_SUCCESS != ReturnCode) && (ReturnCode != SQL_SUCCESS_WITH_INFO))
 		{
-			LOG4CPLUS_ERROR(SubTest, "Error Quering SQL Procedure");
+			LOG4CPLUS_ERROR(SubTest, "Error Quering Check Table Procedure");
 			return;
 		}
 		else
@@ -595,7 +628,7 @@ void DatabaseImplementation::load_data()
 			ReturnCode = procedure_call(CREATE_CATEGORY_PROCEDURE);
 			if ((SQL_SUCCESS != ReturnCode) && (ReturnCode != SQL_SUCCESS_WITH_INFO))
 			{
-				LOG4CPLUS_ERROR(SubTest, "Error Quering SQL Procedure");
+				LOG4CPLUS_ERROR(SubTest, "Error Quering Create Category Procedure");
 				return;
 			}
 			else
@@ -607,7 +640,7 @@ void DatabaseImplementation::load_data()
 			ReturnCode = procedure_call(CREATE_DIFFICULTY_PROCEDURE);
 			if ((SQL_SUCCESS != ReturnCode) && (ReturnCode != SQL_SUCCESS_WITH_INFO))
 			{
-				LOG4CPLUS_ERROR(SubTest, "Error Quering SQL Procedure");
+				LOG4CPLUS_ERROR(SubTest, "Error Quering Create DIfficulty Procedure");
 				return;
 			}
 			else
@@ -619,7 +652,7 @@ void DatabaseImplementation::load_data()
 			ReturnCode = procedure_call(CREATE_WORDS_PROCEDURE);
 			if ((SQL_SUCCESS != ReturnCode) && (ReturnCode != SQL_SUCCESS_WITH_INFO))
 			{
-				LOG4CPLUS_ERROR(SubTest, "Error Quering SQL Procedure");
+				LOG4CPLUS_ERROR(SubTest, "Error Quering Create Word Procedure");
 				return;
 			}
 			else

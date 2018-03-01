@@ -13,7 +13,6 @@
 using namespace log4cplus;
 using namespace std;
 
-
 class Logger4CPlus
 {
 	
